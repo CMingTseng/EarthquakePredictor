@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         reportView.setText(String.format(" max = %10.6f\n min = %10.6f\n dev = %10.6f\n tick = %d",
                 SensorScope.maxSenseValue, SensorScope.minSenseValue, SensorScope.diffSenseValue, senseTick));
 
-        if (sensorScope.newQuakeValue> sensitivityValue ) {
+        if (sensorScope.newQuakeValue > sensitivityValue ) {
         //if ((SensorScope.maxSenseValue-SensorScope.minSenseValue) > sensitivityValue ) {
             if (buttonQuake.getVisibility() == View.INVISIBLE) { //only mark 1st time
                 buttonQuake.setVisibility(View.VISIBLE);
@@ -287,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     SensorScope.maxSenseValue, SensorScope.minSenseValue, SensorScope.diffSenseValue));
         }
 
-        if (sensorScope.snapQuakeValue> sensitivityValue ) {
+        if (sensorScope.snapQuakeValue > sensitivityValue ) {
             takeScreenShot();
         }
 

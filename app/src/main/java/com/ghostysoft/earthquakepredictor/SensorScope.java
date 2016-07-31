@@ -39,6 +39,7 @@ public class SensorScope {
     static int plotLength=0, dataLength=0;
 
     // plot parameters
+    final int posDistance = 30;    //position distance of quake calculation
     XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
     double scaleY = 1.5;
     boolean drawing=false;
@@ -101,7 +102,6 @@ public class SensorScope {
         renderer.setShowGrid(true);
 
         XYSeriesRenderer r = (XYSeriesRenderer) renderer.getSeriesRendererAt(0);
-        //r.setAnnotationsColor(Color.GREEN);
         r.setAnnotationsTextSize(15);
 
         // add chart view to layout
@@ -116,20 +116,10 @@ public class SensorScope {
 
     public  void addData(double x, double y, double z, double v, int tick)
     {
-     //   if (seriesX.getItemCount()<maxPlotLength) {
-            seriesX.add(tick, x);
-            seriesY.add(tick, y);
-            seriesZ.add(tick, z);
-            seriesV.add(tick, v);
-     /*   } else {
-            seriesX.add(plotIndex, tick, x);
-            seriesY.add(plotIndex, tick, y);
-            seriesZ.add(plotIndex, tick, z);
-            seriesV.add(plotIndex, tick, v);
-            if (++plotIndex>maxPlotLength)
-                plotIndex = 0;
-        }
-        */
+        seriesX.add(tick, x);
+        seriesY.add(tick, y);
+        seriesZ.add(tick, z);
+        seriesV.add(tick, v);
         if (!drawing) {
             drawing = true;
             plotChart();
@@ -139,7 +129,6 @@ public class SensorScope {
 
     public void plotChart()
     {
-        final int posDistance = 10;    //position distance of quake calculation
         double yMin= Double.MAX_VALUE;
         double yMax= Double.MIN_VALUE;
         double xMin, xMax;
@@ -158,10 +147,10 @@ public class SensorScope {
         minSenseValue = seriesV.getMinY();
         maxSenseValue = seriesV.getMaxY();
         diffSenseValue = maxSenseValue - minSenseValue;
-        if (plotLength>posDistance) {
+        if (plotLength > posDistance) {
             newQuakeValue = Math.abs(seriesV.getY(dataLength - 1) - seriesV.getY(dataLength -posDistance)); //5 points distance
         }
-        if (plotLength>maxPlotLength/2+posDistance) {
+        if (plotLength > maxPlotLength/2 + posDistance) {
             snapQuakeValue = Math.abs(seriesV.getY(dataLength - maxPlotLength/2) - seriesV.getY(dataLength - maxPlotLength/2 - posDistance));
         }
 
