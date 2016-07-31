@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="Speed">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item android:id="@+id/speedSlow"
+                    android:title="Slow" />
+                <item android:id="@+id/speedNormal"
+                    android:title="Normal"/>
+                <item android:id="@+id/speedFast"
+                    android:title="Fast" />
+                <item android:id="@+id/speedHigh"
+                    android:title="High"
+                    android:visible="false"/>
+            </group>
+            <item android:id="@+id/speedRun"
+                android:title="Stop" />
+        </menu>
+    </item>
+    <item android:title="Sensitivity">
+        <menu>
+        <group android:checkableBehavior="single">
+            <item android:id="@+id/senseLow"
+                android:title="Low" />
+            <item android:id="@+id/senseNormal"
+                android:title="Normal"/>
+            <item android:id="@+id/senseHigh"
+                android:title="High" />
+        </group>
+        </menu>
+    </item>
+    <item android:id="@+id/deleteLogfile"
+        android:title="Delete Log file"
+        android:visible="true"/>
+    <item android:id="@+id/screenShot"
+        android:title="Screen Shot"
+        android:visible="false"/>
+    <item android:id="@+id/Help"
+        android:title="Help"
+        android:visible="false"/>
+</menu>
