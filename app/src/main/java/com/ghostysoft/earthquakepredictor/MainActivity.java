@@ -6,9 +6,6 @@ import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -27,7 +24,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -49,17 +45,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     final static int NormalSpeed = SensorManager.SENSOR_DELAY_UI;
     final static int FastSpeed = SensorManager.SENSOR_DELAY_GAME;
     final static int HighSpeed = SensorManager.SENSOR_DELAY_FASTEST;
+
     // other  constants
-    private  final static int MY_PERMISSIONS_REQUEST = 168; //a randomly assigned integer
-    final String logFileName = "EarthQuakeLog.txt";
+    private  final int MY_PERMISSIONS_REQUEST = 168; //a randomly assigned integer
+    final String logFileName = "QuakeLog.txt";
 
     // Sensor Manager
     SensorManager mSensorManager;
     Sensor mMagneticSensor;
 
     // running parameters
-    int updateSpeed = SlowSpeed;
-    int sensitivityValue = NormalSensitivify;
+    public static int updateSpeed = SlowSpeed;           //extern
+    public static int sensitivityValue = NormalSensitivify;  //extern
     int senseTick=0;
     int quakeCount=0;   //count for quake
 
@@ -90,7 +87,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         buttonQuake.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG,"Reset");
                 buttonQuake.setVisibility(View.INVISIBLE);
             }
         });
@@ -99,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         buttonScreenCapture.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG,"Screen Shot");
+
                 takeScreenShot();
             }
         });
@@ -139,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.option_menu, menu);
         mOptionsMenu = menu;
-        mOptionsMenu.findItem(R.id.speedRun).setTitle(R.string.stop);
+        mOptionsMenu.findItem(R.id.menuSpeedRun).setTitle(R.string.stop);
         return true;
     }
 
@@ -149,28 +145,70 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         switch (updateSpeed) {
             case SlowSpeed:
-                        menu.findItem(R.id.speedSlow).setChecked(true);
+                        menu.findItem(R.id.menuSpeedSlow).setChecked(true);
                         break;
             case NormalSpeed:
-                        menu.findItem(R.id.speedNormal).setChecked(true);
+                        menu.findItem(R.id.menuSpeedNormal).setChecked(true);
                         break;
             case FastSpeed:
-                        menu.findItem(R.id.speedFast).setChecked(true);
+                        menu.findItem(R.id.menuSpeedFast).setChecked(true);
                         break;
             case HighSpeed:
-                        menu.findItem(R.id.speedHigh).setChecked(true);
+                        menu.findItem(R.id.menuSpeedHigh).setChecked(true);
                         break;
         }
 
         switch (sensitivityValue) {
             case HighSensitivity:
-                menu.findItem(R.id.senseHigh).setChecked(true);
+                menu.findItem(R.id.menuSenseHigh).setChecked(true);
                 break;
             case NormalSensitivify:
-                menu.findItem(R.id.senseNormal).setChecked(true);
+                menu.findItem(R.id.menuSenseNormal).setChecked(true);
                 break;
             case LowSensitivity:
-                menu.findItem(R.id.senseLow).setChecked(true);
+                menu.findItem(R.id.menuSenseLow).setChecked(true);
+                break;
+        }
+
+        switch (SensorScope.displayStyle) {
+            case DisplayXYZV:
+                menu.findItem(R.id.menuDisplayXYZV).setChecked(true);
+                break;
+            case DisplayV:
+                menu.findItem(R.id.menuDisplayV).setChecked(true);
+                break;
+        }
+
+        switch ((int)(SensorScope.scaleY*100)) {
+            case 100:
+                menu.findItem(R.id.menuDisplayY100).setChecked(true);
+                break;
+            case 125:
+                menu.findItem(R.id.menuDisplayY125).setChecked(true);
+                break;
+            case 150:
+                menu.findItem(R.id.menuDisplayY150).setChecked(true);
+                break;
+            case 200:
+                menu.findItem(R.id.menuDisplayY200).setChecked(true);
+                break;
+        }
+
+        switch (SensorScope.maxPlotLength) {
+            case 100:
+                menu.findItem(R.id.menuDisplayX100).setChecked(true);
+                break;
+            case 200:
+                menu.findItem(R.id.menuDisplayX200).setChecked(true);
+                break;
+            case 300:
+                menu.findItem(R.id.menuDisplayX300).setChecked(true);
+                break;
+            case 400:
+                menu.findItem(R.id.menuDisplayX400).setChecked(true);
+                break;
+            case 500:
+                menu.findItem(R.id.menuDisplayX500).setChecked(true);
                 break;
         }
         return true;
@@ -178,41 +216,39 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        MenuItem runMenuItem = mOptionsMenu.findItem(R.id.speedRun);
+        MenuItem runMenuItem = mOptionsMenu.findItem(R.id.menuSpeedRun);
         switch (item.getItemId()) {
-            case R.id.speedSlow: //Slow Speed
+
+            //Speed Group
+            case R.id.menuSpeedSlow: //Slow Speed
                 updateSpeed = SlowSpeed;
                 mSensorManager.unregisterListener(this);
                 mSensorManager.registerListener(this, mMagneticSensor, updateSpeed);
                 messageView.setText("Detection is running slowly");
                 runMenuItem.setTitle(R.string.stop);
-                item.setChecked(true);
                 return true;
-            case R.id.speedNormal: //Normal Speed
+            case R.id.menuSpeedNormal: //Normal Speed
                 updateSpeed = NormalSpeed;
                 mSensorManager.unregisterListener(this);
                 mSensorManager.registerListener(this, mMagneticSensor, updateSpeed);
                 messageView.setText("Detection is running normally");
                 runMenuItem.setTitle(R.string.stop);
-                item.setChecked(true);
                 return true;
-            case R.id.speedFast: //Fast Speed
+            case R.id.menuSpeedFast: //Fast Speed
                 updateSpeed = FastSpeed;
                 mSensorManager.unregisterListener(this);
                 mSensorManager.registerListener(this, mMagneticSensor, updateSpeed);
                 messageView.setText("Detection is running fast");
                 runMenuItem.setTitle(R.string.stop);
-                item.setChecked(true);
                 return true;
-            case R.id.speedHigh: //High Speed
+            case R.id.menuSpeedHigh: //High Speed
                 updateSpeed = HighSpeed;
                 mSensorManager.unregisterListener(this);
                 mSensorManager.registerListener(this, mMagneticSensor, updateSpeed);
                 messageView.setText("Detection is running in high speed");
                 runMenuItem.setTitle(R.string.stop);
-                item.setChecked(true);
                 return true;
-            case R.id.speedRun: //Stop
+            case R.id.menuSpeedRun: //Stop
                 if (runMenuItem.getTitle().equals(getText(R.string.stop))) {
                     mSensorManager.unregisterListener(this);
                     runMenuItem.setTitle(R.string.run);
@@ -222,27 +258,67 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     messageView.setText("Detection is running");
                     runMenuItem.setTitle(R.string.stop);
                 } else {
-                    Log.d(TAG, "run=" + runMenuItem.getTitle());
+                    Log.d(TAG, "bad run=" + runMenuItem.getTitle());
                 }
                 return true;
-            case R.id.senseLow: //Low Sensitivity
+
+            //Sensitivyty Group
+            case R.id.menuSenseLow: //Low Sensitivity
                 sensitivityValue = LowSensitivity;
-                item.setChecked(true);
                 return true;
-            case R.id.senseNormal: //Middle Sensitivity
+            case R.id.menuSenseNormal: //Middle Sensitivity
                 sensitivityValue = NormalSensitivify;
-                item.setChecked(true);
                 return true;
-            case R.id.senseHigh: //High Sensitivity
+            case R.id.menuSenseHigh: //High Sensitivity
                 sensitivityValue = HighSensitivity;
-                item.setChecked(true);
                 return true;
+
+            // Display Group
+            case R.id.menuDisplayXYZV:
+                SensorScope.displayStyle = SensorScope.DisplayConst.DisplayXYZV;
+                break;
+            case R.id.menuDisplayV:
+                SensorScope.displayStyle = SensorScope.DisplayConst.DisplayV;
+                break;
+
+            // XScale group
+            case R.id.menuDisplayX100:
+                SensorScope.maxPlotLength = 100;
+                break;
+            case R.id.menuDisplayX200:
+                SensorScope.maxPlotLength = 200;
+                break;
+            case R.id.menuDisplayX300:
+                SensorScope.maxPlotLength = 300;
+                break;
+            case R.id.menuDisplayX400:
+                SensorScope.maxPlotLength = 400;
+                break;
+            case R.id.menuDisplayX500:
+                SensorScope.maxPlotLength = 500;
+                break;
+
+            //YScale group
+            case R.id.menuDisplayY100:
+                SensorScope.scaleY = 1.00;
+                break;
+            case R.id.menuDisplayY125:
+                SensorScope.scaleY = 1.25;
+                break;
+            case R.id.menuDisplayY150:
+                SensorScope.scaleY = 1.50;
+                break;
+            case R.id.menuDisplayY200:
+                SensorScope.scaleY = 2.00;
+                break;
+
+            //Tools
             case R.id.screenShot: //take screen shot
                 takeScreenShot();
-                return true;
-            case R.id.deleteLogfile: //take screen shot
+                break;
+            case R.id.deleteLogfile:
                 deleteLogFile();
-                return true;
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -313,7 +389,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //
     private void writeLogFile(String message)
     {
-
         try {
             File logFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), logFileName);
             FileOutputStream outputStream = new FileOutputStream(logFile.getAbsolutePath(),true); //appen end
@@ -337,7 +412,37 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             messageView.setText("Delete Logfile failed");
             e.printStackTrace();
         }
+    }
 
+    private void writeSensorData()
+    {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        Date curDate = new Date(System.currentTimeMillis());
+        String dataFileName = "Quake"+formatter.format(curDate)+".txt";
+
+        try {
+            File logFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), dataFileName);
+            FileOutputStream outputStream = new FileOutputStream(logFile.getAbsolutePath()); //create file
+
+            int last = SensorScope.seriesX.getItemCount();
+            int first = (SensorScope.plotLength<SensorScope.maxPlotLength) ? 0 : (last-SensorScope.plotLength);
+            SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
+            for (int i=first; i<last; i++) {
+                outputStream.write(String.format("%s, %10.6f, %10.6f, %10.6f\n",
+                        formatter2.format(SensorScope.seriesTime.get(i)),
+                        SensorScope.seriesX.getY(i),
+                        SensorScope.seriesY.getY(i),
+                        SensorScope.seriesZ.getY(i)
+                ).getBytes());
+            }
+
+            outputStream.flush();
+            outputStream.close();
+            messageView.setText("Write Logfile OK");
+        } catch (Exception e) {
+            messageView.setText("Write Logfile failed");
+            e.printStackTrace();
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -346,13 +451,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private void takeScreenShot() {
 
         if (!isExternalStorageWritable()) {
-            Toast.makeText(this, "External Storage is not Writable", Toast.LENGTH_LONG).show();
+            messageView.setText("External Storage is not Writable");
             return;
         } else {
             //Toast.makeText(this,"External Storage is Writable",Toast.LENGTH_LONG).show();
         }
 
-        Process sh;
+        writeSensorData(); //Automatic write data to file
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd_HHmmss");
         SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -369,7 +474,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             rootView.setDrawingCacheEnabled(false);
 
             // save to image file
-            File imageFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Screenshots/" + fileName +".jpg");
+            File imageFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Screenshots/Quake" + fileName +".jpg");
             Log.d(TAG,"file: "+imageFile.getAbsolutePath());
             OutputStream outputStream = new FileOutputStream(imageFile); //FileNotFoundException
             capturedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);

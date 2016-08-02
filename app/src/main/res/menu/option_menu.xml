@@ -4,39 +4,88 @@
     <item android:title="Speed">
         <menu>
             <group android:checkableBehavior="single">
-                <item android:id="@+id/speedSlow"
+                <item android:id="@+id/menuSpeedSlow"
                     android:title="Slow" />
-                <item android:id="@+id/speedNormal"
+                <item android:id="@+id/menuSpeedNormal"
                     android:title="Normal"/>
-                <item android:id="@+id/speedFast"
+                <item android:id="@+id/menuSpeedFast"
                     android:title="Fast" />
-                <item android:id="@+id/speedHigh"
+                <item android:id="@+id/menuSpeedHigh"
                     android:title="High"
                     android:visible="false"/>
             </group>
-            <item android:id="@+id/speedRun"
+            <item android:id="@+id/menuSpeedRun"
                 android:title="Stop" />
         </menu>
     </item>
+
     <item android:title="Sensitivity">
         <menu>
         <group android:checkableBehavior="single">
-            <item android:id="@+id/senseLow"
+            <item android:id="@+id/menuSenseLow"
                 android:title="Low" />
-            <item android:id="@+id/senseNormal"
+            <item android:id="@+id/menuSenseNormal"
                 android:title="Normal"/>
-            <item android:id="@+id/senseHigh"
+            <item android:id="@+id/menuSenseHigh"
                 android:title="High" />
         </group>
         </menu>
     </item>
-    <item android:id="@+id/deleteLogfile"
-        android:title="Delete Log file"
-        android:visible="true"/>
-    <item android:id="@+id/screenShot"
-        android:title="Screen Shot"
-        android:visible="false"/>
-    <item android:id="@+id/Help"
-        android:title="Help"
-        android:visible="false"/>
+
+    <item android:title="Display Lines">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item android:id="@+id/menuDisplayXYZV"
+                    android:title="Line XYZV" />
+                <item android:id="@+id/menuDisplayV"
+                    android:title="Line V"/>
+            </group>
+        </menu>
+    </item>
+
+    <item android:title="Scope X Scale">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item android:id="@+id/menuDisplayX100"
+                    android:title="100" />
+                <item android:id="@+id/menuDisplayX200"
+                    android:title="200" />
+                <item android:id="@+id/menuDisplayX300"
+                    android:title="300" />
+                <item android:id="@+id/menuDisplayX400"
+                    android:title="400" />
+                <item android:id="@+id/menuDisplayX500"
+                    android:title="500" />
+            </group>
+        </menu>
+    </item>
+
+    <item android:title="Scope Y Scale">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item android:id="@+id/menuDisplayY100"
+                    android:title="1.00" />
+                <item android:id="@+id/menuDisplayY125"
+                    android:title="1.25" />
+                <item android:id="@+id/menuDisplayY150"
+                    android:title="1.50" />
+                <item android:id="@+id/menuDisplayY200"
+                    android:title="2.00" />
+            </group>
+        </menu>
+    </item>
+
+    <item android:title="Tools">
+        <menu>
+             <item android:id="@+id/deleteLogfile"
+                 android:title="Delete Log file"
+                 android:visible="true"/>
+             <item android:id="@+id/screenShot"
+                 android:title="Screen Shot"
+                 android:visible="false"/>
+             <item android:id="@+id/Help"
+                 android:title="Help"
+                 android:visible="false"/>
+        </menu>
+    </item>
 </menu>

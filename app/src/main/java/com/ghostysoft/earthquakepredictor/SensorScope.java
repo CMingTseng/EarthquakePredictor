@@ -4,13 +4,20 @@ package com.ghostysoft.earthquakepredictor;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import org.achartengine.ChartFactory;
+import org.achartengine.model.TimeSeries;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
+
+import java.sql.Time;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Created by ghosty on 2016/7/31.
@@ -18,30 +25,34 @@ import org.achartengine.renderer.XYSeriesRenderer;
 
 public class SensorScope {
     private final static String TAG = MainActivity.class.getSimpleName();
+
+    enum DisplayConst {DisplayXYZV, DisplayV};  // display constants
     final int numberOfLines = 4;
-    final int maxPlotLength = 200; // max point on the plot
 
     private View rootView;
     private View chartView;
     Context context;
 
     // sensor data
-    XYSeries seriesX = new XYSeries("X");
-    XYSeries seriesY = new XYSeries("Y");
-    XYSeries seriesZ = new XYSeries("Z");
-    XYSeries seriesV = new XYSeries("V");
+    static XYSeries seriesX = new XYSeries("X");
+    static XYSeries seriesY = new XYSeries("Y");
+    static XYSeries seriesZ = new XYSeries("Z");
+    static XYSeries seriesV = new XYSeries("V");
+    static ArrayList<Date> seriesTime = new ArrayList<Date>();
     XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
 
     // extern reference
     static double minSenseValue = Float.MAX_VALUE;
     static double maxSenseValue = 0;
     static double diffSenseValue, newQuakeValue=0, snapQuakeValue=0;
-    static int plotLength=0, dataLength=0;
+    static int maxPlotLength = 200, plotLength=0, dataLength=0;
+
+    static  DisplayConst displayStyle = DisplayConst.DisplayXYZV;
 
     // plot parameters
-    final int posDistance = 30;    //position distance of quake calculation
+    final int posDistance = 20;    //position distance of quake calculation
     XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
-    double scaleY = 1.5;
+    static double scaleY = 1.5; //extern
     boolean drawing=false;
 
     public SensorScope(Context context, View view) {
@@ -120,6 +131,7 @@ public class SensorScope {
         seriesY.add(tick, y);
         seriesZ.add(tick, z);
         seriesV.add(tick, v);
+        seriesTime.add(new Date(System.currentTimeMillis()));
         if (!drawing) {
             drawing = true;
             plotChart();
@@ -129,6 +141,7 @@ public class SensorScope {
 
     public void plotChart()
     {
+        // scope  value range
         double yMin= Double.MAX_VALUE;
         double yMax= Double.MIN_VALUE;
         double xMin, xMax;
@@ -154,7 +167,7 @@ public class SensorScope {
             snapQuakeValue = Math.abs(seriesV.getY(dataLength - maxPlotLength/2) - seriesV.getY(dataLength - maxPlotLength/2 - posDistance));
         }
 
-        for (int i=0; i<seriesX.getItemCount(); i++) {
+        if (displayStyle==DisplayConst.DisplayXYZV) {
             if (yMin>(tempY=seriesX.getMinY())) yMin=tempY;
             if (yMin>(tempY=seriesY.getMinY())) yMin=tempY;
             if (yMin>(tempY=seriesZ.getMinY())) yMin=tempY;
@@ -163,9 +176,17 @@ public class SensorScope {
             if (yMax<(tempY=seriesY.getMaxY())) yMax=tempY;
             if (yMax<(tempY=seriesZ.getMaxY())) yMax=tempY;
             if (yMax<(tempY=seriesV.getMaxY())) yMax=tempY;
+        } else if (displayStyle==DisplayConst.DisplayV) {
+            if (yMin>(tempY=seriesV.getMinY())) yMin=tempY;
+            if (yMax<(tempY=seriesV.getMaxY())) yMax=tempY;
+        } else {
+            Log.d(TAG,"bad displayStyle code ");
         }
-        yMax = (yMax>0) ? (yMax*scaleY) : yMax / scaleY;
-        yMin = (yMin>0) ? (yMin/scaleY) : yMin * scaleY;
+
+        double yMid = (yMax+yMin)/2;
+        double yAmp= Math.max((yMax-yMin)/2, MainActivity.sensitivityValue/2);
+        yMax = (yMax+yMin)/2 + yAmp*scaleY;
+        yMin = yMid - yAmp*scaleY;
 
         // set plot range
         renderer.setXAxisMin(xMin);
