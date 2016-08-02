@@ -4,20 +4,20 @@ package com.ghostysoft.earthquakepredictor;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import org.achartengine.ChartFactory;
-import org.achartengine.model.TimeSeries;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
-
-import java.sql.Time;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Created by ghosty on 2016/7/31.
@@ -34,20 +34,16 @@ public class SensorScope {
     Context context;
 
     // sensor data
-    static XYSeries seriesX = new XYSeries("X");
-    static XYSeries seriesY = new XYSeries("Y");
-    static XYSeries seriesZ = new XYSeries("Z");
-    static XYSeries seriesV = new XYSeries("V");
-    static ArrayList<Date> seriesTime = new ArrayList<Date>();
-    XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
+    XYSeries seriesX, seriesY, seriesZ, seriesV;
+    ArrayList<Date> seriesTime;
+    XYMultipleSeriesDataset dataset;
 
     // extern reference
-    static double minSenseValue = Float.MAX_VALUE;
-    static double maxSenseValue = 0;
-    static double diffSenseValue, newQuakeValue=0, snapQuakeValue=0;
-    static int maxPlotLength = 200, plotLength=0, dataLength=0;
-
-    static  DisplayConst displayStyle = DisplayConst.DisplayXYZV;
+    public double minSenseValue = Float.MAX_VALUE;
+    public double maxSenseValue = 0;
+    public double diffSenseValue, newQuakeValue=0, snapQuakeValue=0;
+    public int maxPlotLength = 200, plotLength=0, dataLength=0;
+    public DisplayConst displayStyle = DisplayConst.DisplayXYZV;
 
     // plot parameters
     final int posDistance = 20;    //position distance of quake calculation
@@ -58,6 +54,13 @@ public class SensorScope {
     public SensorScope(Context context, View view) {
         this.context = context;
         this.rootView = view;
+
+        seriesX = new XYSeries("X");
+        seriesY = new XYSeries("Y");
+        seriesZ = new XYSeries("Z");
+        seriesV = new XYSeries("V");
+        seriesTime = new ArrayList<Date>();
+        dataset = new XYMultipleSeriesDataset();
 
         dataset.addSeries(seriesX);
         dataset.addSeries(seriesY);
@@ -149,24 +152,33 @@ public class SensorScope {
 
         // calculate statistics
         dataLength = seriesV.getItemCount();
-        plotLength = Math.min(seriesV.getItemCount(),maxPlotLength);
-        if (plotLength<maxPlotLength) { // first plot
-            xMax = maxPlotLength;
-            xMin = 0;
-        } else {
-            xMax = seriesX.getMaxX();
-            xMin = xMax-  maxPlotLength;
-        }
         minSenseValue = seriesV.getMinY();
         maxSenseValue = seriesV.getMaxY();
         diffSenseValue = maxSenseValue - minSenseValue;
-        if (plotLength > posDistance) {
-            newQuakeValue = Math.abs(seriesV.getY(dataLength - 1) - seriesV.getY(dataLength -posDistance)); //5 points distance
-        }
-        if (plotLength > maxPlotLength/2 + posDistance) {
-            snapQuakeValue = Math.abs(seriesV.getY(dataLength - maxPlotLength/2) - seriesV.getY(dataLength - maxPlotLength/2 - posDistance));
+
+        // calculate horizontal display parameters
+        if (maxPlotLength<0) {
+            // all data
+            xMin = 0;
+            xMax = seriesV.getMaxX();
+        } else {
+            plotLength = Math.min(seriesV.getItemCount(), maxPlotLength);
+            if (plotLength < maxPlotLength) { // first plot
+                xMax = maxPlotLength;
+                xMin = 0;
+            } else {
+                xMax = seriesX.getMaxX();
+                xMin = xMax - maxPlotLength;
+            }
+            if (plotLength > posDistance) {
+                newQuakeValue = Math.abs(seriesV.getY(dataLength - 1) - seriesV.getY(dataLength -posDistance)); //5 points distance
+            }
+            if (plotLength > maxPlotLength/2 + posDistance) {
+                snapQuakeValue = Math.abs(seriesV.getY(dataLength - maxPlotLength/2) - seriesV.getY(dataLength - maxPlotLength/2 - posDistance));
+            }
         }
 
+        // calculate vertical display parameters
         if (displayStyle==DisplayConst.DisplayXYZV) {
             if (yMin>(tempY=seriesX.getMinY())) yMin=tempY;
             if (yMin>(tempY=seriesY.getMinY())) yMin=tempY;
@@ -182,7 +194,6 @@ public class SensorScope {
         } else {
             Log.d(TAG,"bad displayStyle code ");
         }
-
         double yMid = (yMax+yMin)/2;
         double yAmp= Math.max((yMax-yMin)/2, MainActivity.sensitivityValue/2);
         yMax = (yMax+yMin)/2 + yAmp*scaleY;
@@ -194,5 +205,35 @@ public class SensorScope {
         renderer.setYAxisMin(yMin);
         renderer.setYAxisMax(yMax);
         chartView.invalidate();  //or repaint() ?
+    }
+
+    public boolean writeSensorData()
+    {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        Date curDate = new Date(System.currentTimeMillis());
+        String dataFileName = "Quake"+formatter.format(curDate)+".txt";
+
+        try {
+            File logFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), dataFileName);
+            FileOutputStream outputStream = new FileOutputStream(logFile.getAbsolutePath()); //create file
+
+            int last = seriesX.getItemCount();
+            int first = (plotLength<maxPlotLength) ? 0 : (last-plotLength);
+            SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
+            for (int i=first; i<last; i++) {
+                outputStream.write(String.format("%s, %10.6f, %10.6f, %10.6f\n",
+                        formatter2.format(seriesTime.get(i)),
+                        seriesX.getY(i),
+                        seriesY.getY(i),
+                        seriesZ.getY(i)
+                ).getBytes());
+            }
+            outputStream.flush();
+            outputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

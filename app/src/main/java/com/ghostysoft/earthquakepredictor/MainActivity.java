@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 break;
         }
 
-        switch (SensorScope.displayStyle) {
+        switch (sensorScope.displayStyle) {
             case DisplayXYZV:
                 menu.findItem(R.id.menuDisplayXYZV).setChecked(true);
                 break;
@@ -189,12 +189,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             case 150:
                 menu.findItem(R.id.menuDisplayY150).setChecked(true);
                 break;
+            case 175:
+                menu.findItem(R.id.menuDisplayY175).setChecked(true);
+                break;
             case 200:
                 menu.findItem(R.id.menuDisplayY200).setChecked(true);
                 break;
         }
 
-        switch (SensorScope.maxPlotLength) {
+        switch (sensorScope.maxPlotLength) {
             case 100:
                 menu.findItem(R.id.menuDisplayX100).setChecked(true);
                 break;
@@ -209,6 +212,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 break;
             case 500:
                 menu.findItem(R.id.menuDisplayX500).setChecked(true);
+                break;
+            case 1000:
+                menu.findItem(R.id.menuDisplayX1000).setChecked(true);
+                break;
+            case -1:
+                menu.findItem(R.id.menuDisplayXall).setChecked(true);
                 break;
         }
         return true;
@@ -275,27 +284,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             // Display Group
             case R.id.menuDisplayXYZV:
-                SensorScope.displayStyle = SensorScope.DisplayConst.DisplayXYZV;
+                sensorScope.displayStyle = SensorScope.DisplayConst.DisplayXYZV;
                 break;
             case R.id.menuDisplayV:
-                SensorScope.displayStyle = SensorScope.DisplayConst.DisplayV;
+                sensorScope.displayStyle = SensorScope.DisplayConst.DisplayV;
                 break;
 
             // XScale group
             case R.id.menuDisplayX100:
-                SensorScope.maxPlotLength = 100;
+                sensorScope.maxPlotLength = 100;
                 break;
             case R.id.menuDisplayX200:
-                SensorScope.maxPlotLength = 200;
+                sensorScope.maxPlotLength = 200;
                 break;
             case R.id.menuDisplayX300:
-                SensorScope.maxPlotLength = 300;
+                sensorScope.maxPlotLength = 300;
                 break;
             case R.id.menuDisplayX400:
-                SensorScope.maxPlotLength = 400;
+                sensorScope.maxPlotLength = 400;
                 break;
             case R.id.menuDisplayX500:
-                SensorScope.maxPlotLength = 500;
+                sensorScope.maxPlotLength = 500;
+                break;
+            case R.id.menuDisplayX1000:
+                sensorScope.maxPlotLength = 1000;
+                break;
+            case R.id.menuDisplayXall:
+                sensorScope.maxPlotLength = -1;
                 break;
 
             //YScale group
@@ -307,6 +322,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 break;
             case R.id.menuDisplayY150:
                 SensorScope.scaleY = 1.50;
+                break;
+            case R.id.menuDisplayY175:
+                SensorScope.scaleY = 1.75;
                 break;
             case R.id.menuDisplayY200:
                 SensorScope.scaleY = 2.00;
@@ -342,7 +360,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 event.values[0], event.values[1], event.values[2], v));
 
         reportView.setText(String.format(" max = %10.6f\n min = %10.6f\n dev = %10.6f\n tick = %d",
-                SensorScope.maxSenseValue, SensorScope.minSenseValue, SensorScope.diffSenseValue, senseTick));
+                sensorScope.maxSenseValue, sensorScope.minSenseValue, sensorScope.diffSenseValue, senseTick));
 
         if (sensorScope.newQuakeValue > sensitivityValue ) {
         //if ((SensorScope.maxSenseValue-SensorScope.minSenseValue) > sensitivityValue ) {
@@ -360,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             writeLogFile(String.format("%s : v=(%f, %f, %f), diff=%f, max=%f, min=%f, dev=%f\n",
                     timeStr,
                     event.values[0], event.values[1], event.values[2], v,
-                    SensorScope.maxSenseValue, SensorScope.minSenseValue, SensorScope.diffSenseValue));
+                    sensorScope.maxSenseValue, sensorScope.minSenseValue, sensorScope.diffSenseValue));
         }
 
         if (sensorScope.snapQuakeValue > sensitivityValue ) {
@@ -414,37 +432,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    private void writeSensorData()
-    {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd_HHmmss");
-        Date curDate = new Date(System.currentTimeMillis());
-        String dataFileName = "Quake"+formatter.format(curDate)+".txt";
-
-        try {
-            File logFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), dataFileName);
-            FileOutputStream outputStream = new FileOutputStream(logFile.getAbsolutePath()); //create file
-
-            int last = SensorScope.seriesX.getItemCount();
-            int first = (SensorScope.plotLength<SensorScope.maxPlotLength) ? 0 : (last-SensorScope.plotLength);
-            SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
-            for (int i=first; i<last; i++) {
-                outputStream.write(String.format("%s, %10.6f, %10.6f, %10.6f\n",
-                        formatter2.format(SensorScope.seriesTime.get(i)),
-                        SensorScope.seriesX.getY(i),
-                        SensorScope.seriesY.getY(i),
-                        SensorScope.seriesZ.getY(i)
-                ).getBytes());
-            }
-
-            outputStream.flush();
-            outputStream.close();
-            messageView.setText("Write Logfile OK");
-        } catch (Exception e) {
-            messageView.setText("Write Logfile failed");
-            e.printStackTrace();
-        }
-    }
-
     // ------------------------------------------------------------------------
     //  takeScreenShot()
     // ------------------------------------------------------------------------
@@ -457,7 +444,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             //Toast.makeText(this,"External Storage is Writable",Toast.LENGTH_LONG).show();
         }
 
-        writeSensorData(); //Automatic write data to file
+        boolean writeResult = sensorScope.writeSensorData(); //Automatic write data to file
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd_HHmmss");
         SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");

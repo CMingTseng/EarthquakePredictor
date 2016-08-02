@@ -56,6 +56,10 @@
                     android:title="400" />
                 <item android:id="@+id/menuDisplayX500"
                     android:title="500" />
+                <item android:id="@+id/menuDisplayX1000"
+                    android:title="1000" />
+                <item android:id="@+id/menuDisplayXall"
+                    android:title="All" />
             </group>
         </menu>
     </item>
@@ -69,6 +73,8 @@
                     android:title="1.25" />
                 <item android:id="@+id/menuDisplayY150"
                     android:title="1.50" />
+                <item android:id="@+id/menuDisplayY175"
+                    android:title="1.75" />
                 <item android:id="@+id/menuDisplayY200"
                     android:title="2.00" />
             </group>
