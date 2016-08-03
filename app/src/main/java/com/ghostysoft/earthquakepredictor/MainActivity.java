@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // other  constants
     private  final int MY_PERMISSIONS_REQUEST = 168; //a randomly assigned integer
-    final String logFileName = "QuakeLog.txt";
 
     // Sensor Manager
     SensorManager mSensorManager;
@@ -177,6 +176,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             case DisplayV:
                 menu.findItem(R.id.menuDisplayV).setChecked(true);
                 break;
+            case DisplayX:
+                menu.findItem(R.id.menuDisplayX).setChecked(true);
+                break;
+            case DisplayY:
+                menu.findItem(R.id.menuDisplayY).setChecked(true);
+                break;
+            case DisplayZ:
+                menu.findItem(R.id.menuDisplayZ).setChecked(true);
+                break;
         }
 
         switch ((int)(SensorScope.scaleY*100)) {
@@ -233,38 +241,38 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 updateSpeed = SlowSpeed;
                 mSensorManager.unregisterListener(this);
                 mSensorManager.registerListener(this, mMagneticSensor, updateSpeed);
-                messageView.setText("Detection is running slowly");
+                showMessage("Detection is running slowly");
                 runMenuItem.setTitle(R.string.stop);
                 return true;
             case R.id.menuSpeedNormal: //Normal Speed
                 updateSpeed = NormalSpeed;
                 mSensorManager.unregisterListener(this);
                 mSensorManager.registerListener(this, mMagneticSensor, updateSpeed);
-                messageView.setText("Detection is running normally");
+                showMessage("Detection is running normally");
                 runMenuItem.setTitle(R.string.stop);
                 return true;
             case R.id.menuSpeedFast: //Fast Speed
                 updateSpeed = FastSpeed;
                 mSensorManager.unregisterListener(this);
                 mSensorManager.registerListener(this, mMagneticSensor, updateSpeed);
-                messageView.setText("Detection is running fast");
+                showMessage("Detection is running fast");
                 runMenuItem.setTitle(R.string.stop);
                 return true;
             case R.id.menuSpeedHigh: //High Speed
                 updateSpeed = HighSpeed;
                 mSensorManager.unregisterListener(this);
                 mSensorManager.registerListener(this, mMagneticSensor, updateSpeed);
-                messageView.setText("Detection is running in high speed");
+                showMessage("Detection is running in high speed");
                 runMenuItem.setTitle(R.string.stop);
                 return true;
             case R.id.menuSpeedRun: //Stop
                 if (runMenuItem.getTitle().equals(getText(R.string.stop))) {
                     mSensorManager.unregisterListener(this);
                     runMenuItem.setTitle(R.string.run);
-                    messageView.setText("Detection is stopped");
+                    showMessage("Detection is stopped");
                 } else if (runMenuItem.getTitle().equals(getText(R.string.run))) {
                     mSensorManager.registerListener(this, mMagneticSensor, updateSpeed);
-                    messageView.setText("Detection is running");
+                    showMessage("Detection is running");
                     runMenuItem.setTitle(R.string.stop);
                 } else {
                     Log.d(TAG, "bad run=" + runMenuItem.getTitle());
@@ -288,6 +296,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 break;
             case R.id.menuDisplayV:
                 sensorScope.displayStyle = SensorScope.DisplayConst.DisplayV;
+                break;
+
+            case R.id.menuDisplayX:
+                sensorScope.displayStyle = SensorScope.DisplayConst.DisplayX;
+                break;
+
+            case R.id.menuDisplayY:
+                sensorScope.displayStyle = SensorScope.DisplayConst.DisplayY;
+                break;
+
+            case R.id.menuDisplayZ:
+                sensorScope.displayStyle = SensorScope.DisplayConst.DisplayZ;
                 break;
 
             // XScale group
@@ -334,8 +354,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             case R.id.screenShot: //take screen shot
                 takeScreenShot();
                 break;
-            case R.id.deleteLogfile:
-                deleteLogFile();
+            case R.id.deleteAllFiles:
+                deleteAllFiles();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -354,7 +374,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 event.values[0] * event.values[0] +
                         event.values[1] * event.values[1] +
                         event.values[2] * event.values[2]);
-        sensorScope.addData(event.values[0], event.values[1], event.values[2], v, senseTick);
+        sensorScope.addData(senseTick, event.values[0], event.values[1], event.values[2], v);
 
         sensorView.setText(String.format(" X = %10.6f\n Y = %10.6f\n Z = %10.6f\n V = %10.6f",
                 event.values[0], event.values[1], event.values[2], v));
@@ -401,35 +421,45 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         MyAlertDialog.setNeutralButton("OK", OkClick);
         MyAlertDialog.show();
     }
+    
+    private void showMessage(String message) {
+        messageView.setText(message+"\n"+
+                sensorScope.dataManager.recordFormatter.format(new Date(System.currentTimeMillis())));
+    }
 
     //
     // writeLogFile()
     //
     private void writeLogFile(String message)
     {
-        try {
-            File logFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), logFileName);
-            FileOutputStream outputStream = new FileOutputStream(logFile.getAbsolutePath(),true); //appen end
-            outputStream.write(message.getBytes());
-            outputStream.flush();
-            outputStream.close();
-            messageView.setText("Write Logfile OK");
-        } catch (Exception e) {
-            messageView.setText("Write Logfile failed");
-            e.printStackTrace();
-        }
+        showMessage(sensorScope.dataManager.writeLogFile(message));
     }
 
-    private void deleteLogFile()
+    private void deleteAllFiles()
     {
-        try {
-            File logFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), logFileName);
-            logFile.delete();
-            messageView.setText("Delete Logfile OK");
-        } catch (Exception e) {
-            messageView.setText("Delete Logfile failed");
-            e.printStackTrace();
-        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Warning");
+        builder.setMessage("Do you want delete all files ?");
+        builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                // Do do my action here
+                showMessage(sensorScope.dataManager.deleteAllFiles());
+                dialog.dismiss();
+            }
+
+        });
+
+        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // I do not need any action here you might
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 
     // ------------------------------------------------------------------------
@@ -438,51 +468,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private void takeScreenShot() {
 
         if (!isExternalStorageWritable()) {
-            messageView.setText("External Storage is not Writable");
+            showMessage("External Storage is not Writable");
             return;
         } else {
             //Toast.makeText(this,"External Storage is Writable",Toast.LENGTH_LONG).show();
         }
 
-        boolean writeResult = sensorScope.writeSensorData(); //Automatic write data to file
-
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd_HHmmss");
-        SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        Date curDate = new Date(System.currentTimeMillis());
-        String fileName = formatter.format(curDate);
-        String strNow = formatter2.format(curDate);
-
-        try {
-            // create bitmap screen capture
-            View rootView = getWindow().getDecorView().getRootView(); // get full screen
-            //View rootView = getWindow().getDecorView().getRootView(); // get activity screen
-            rootView.setDrawingCacheEnabled(true);
-            Bitmap capturedBitmap = Bitmap.createBitmap(rootView.getDrawingCache());
-            rootView.setDrawingCacheEnabled(false);
-
-            // save to image file
-            File imageFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Screenshots/Quake" + fileName +".jpg");
-            Log.d(TAG,"file: "+imageFile.getAbsolutePath());
-            OutputStream outputStream = new FileOutputStream(imageFile); //FileNotFoundException
-            capturedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-            outputStream.flush();
-            outputStream.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            messageView.setText("File Not Found");
-            return;
-        } catch (IOException e) {
-            e.printStackTrace();
-            messageView.setText("I/O Exception");
-            return;
-        } catch(Throwable e) {
-            e.printStackTrace();
-            messageView.setText("Screen Snapshot Fail");
-            return;
-        }
-
-        //Toast.makeText(this, "File Saved", Toast.LENGTH_SHORT).show(); //do not do this
-        messageView.setText("Screen Captured\n"+strNow);
+        String strResult=sensorScope.dataManager.screenCapture(getWindow().getDecorView().getRootView());
+        showMessage(strResult);
     }
 
     /* Checks if external storage is available for read and write */

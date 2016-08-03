@@ -5,11 +5,12 @@
         <menu>
             <group android:checkableBehavior="single">
                 <item android:id="@+id/menuSpeedSlow"
-                    android:title="Slow" />
+                    android:title="Normal" />
                 <item android:id="@+id/menuSpeedNormal"
-                    android:title="Normal"/>
+                    android:title="Fast"/>
                 <item android:id="@+id/menuSpeedFast"
-                    android:title="Fast" />
+                    android:title="Fast"
+                    android:visible="false"/>
                 <item android:id="@+id/menuSpeedHigh"
                     android:title="High"
                     android:visible="false"/>
@@ -39,11 +40,17 @@
                     android:title="Line XYZV" />
                 <item android:id="@+id/menuDisplayV"
                     android:title="Line V"/>
+                <item android:id="@+id/menuDisplayX"
+                    android:title="Line X"/>
+                <item android:id="@+id/menuDisplayY"
+                    android:title="Line Y"/>
+                <item android:id="@+id/menuDisplayZ"
+                    android:title="Line Z"/>
             </group>
         </menu>
     </item>
 
-    <item android:title="Scope X Scale">
+    <item android:title="Scope Scale X">
         <menu>
             <group android:checkableBehavior="single">
                 <item android:id="@+id/menuDisplayX100"
@@ -59,12 +66,13 @@
                 <item android:id="@+id/menuDisplayX1000"
                     android:title="1000" />
                 <item android:id="@+id/menuDisplayXall"
-                    android:title="All" />
+                    android:title="All"
+                    android:visible="false"/>
             </group>
         </menu>
     </item>
 
-    <item android:title="Scope Y Scale">
+    <item android:title="Scope Scale Y" >
         <menu>
             <group android:checkableBehavior="single">
                 <item android:id="@+id/menuDisplayY100"
@@ -83,8 +91,8 @@
 
     <item android:title="Tools">
         <menu>
-             <item android:id="@+id/deleteLogfile"
-                 android:title="Delete Log file"
+             <item android:id="@+id/deleteAllFiles"
+                 android:title="Delete All files"
                  android:visible="true"/>
              <item android:id="@+id/screenShot"
                  android:title="Screen Shot"
