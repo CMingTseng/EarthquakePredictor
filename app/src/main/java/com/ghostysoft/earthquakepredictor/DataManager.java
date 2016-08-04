@@ -27,6 +27,7 @@ public class DataManager {
     final int maxDataLength=1000; //keep limited memory
     final SimpleDateFormat fileFormatter = new SimpleDateFormat("yyyyMMdd_HHmmss");
     final SimpleDateFormat recordFormatter = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
+    final SimpleDateFormat msgFormatter = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
     // sensor data
     XYSeries seriesX, seriesY, seriesZ, seriesV;
@@ -80,7 +81,7 @@ public class DataManager {
     private void buildLogFile()
     {
         String logFileName =  strRootPath + fileFormatter.format(new Date(System.currentTimeMillis()))+".log";
-        dataFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), logFileName);
+        logFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), logFileName);
     }
 
     public  void addData( int tick, double x, double y, double z, double v) {
@@ -123,7 +124,7 @@ public class DataManager {
    public String writeLogFile(String message)
     {
         try {
-             FileOutputStream outputStream = new FileOutputStream(logFile.getAbsolutePath(),true); //appen end
+            FileOutputStream outputStream = new FileOutputStream(logFile.getAbsolutePath(),true); //appen end
             outputStream.write(message.getBytes());
             outputStream.flush();
             outputStream.close();
@@ -180,6 +181,6 @@ public class DataManager {
             e.printStackTrace();
             return "Screen Snapshot Fail";
         }
-        return "Screen Captured\n"+strNow;
+        return "Screen Captured";
     }
 }

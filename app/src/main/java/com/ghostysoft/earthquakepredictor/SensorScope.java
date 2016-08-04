@@ -73,7 +73,7 @@ public class SensorScope {
         renderer.setAxesColor(Color.BLACK);
         renderer.setLabelsColor(Color.BLACK);
 
-        renderer.setMargins(new int[] { 60, 90, 50, 90 }); //top, left, down, right
+        renderer.setMargins(new int[] { 60, 80, 50, 50 }); //top, left, down, right
         renderer.setMarginsColor(Color.WHITE);
 
         renderer.setLegendTextSize(32);
@@ -82,12 +82,12 @@ public class SensorScope {
         renderer.setShowLegend(true);
 
         //renderer.setPointSize(2);
-        renderer.setXTitle("Tick");
+        //renderer.setXTitle("Tick");
         //renderer.setXLabels(6); // not correct in aChartEngine?
         renderer.setXLabelsColor(Color.BLACK);
         //renderer.setXLabelsAlign(Paint.Align.CENTER); //default
 
-        renderer.setYTitle("Sensor Values");
+        //renderer.setYTitle("Sensor Values");
         renderer.setYLabels(8);
         renderer.setYLabelsColor(0, Color.BLACK);
         renderer.setYLabelsAlign(Paint.Align.RIGHT);

@@ -22,7 +22,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,10 +39,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // degbug constants
     private final static String TAG = MainActivity.class.getSimpleName();
-    // sensitivity  constants
-    final static int LowSensitivity = 25;
-    final static int NormalSensitivify = 10;
-    final static int HighSensitivity = 5;
+
     // speed constants
     final static int SlowSpeed = SensorManager.SENSOR_DELAY_NORMAL;
     final static int NormalSpeed = SensorManager.SENSOR_DELAY_UI;
@@ -55,17 +55,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // running parameters
     public static int updateSpeed = SlowSpeed;           //extern
-    public static int sensitivityValue = NormalSensitivify;  //extern
+    public static int sensitivityValue = 10;                //extern
     int senseTick=0;
     int quakeCount=0;   //count for quake
 
     // UI elements
     TextView sensorView, reportView, messageView;
+    private ImageView compassView;
     Button buttonQuake, buttonScreenCapture;
     Menu mOptionsMenu;
 
     // The Scope
     SensorScope sensorScope;
+    int sensorType = Sensor.TYPE_MAGNETIC_FIELD;
+    private float currentDegree = 0f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sensorView = (TextView) findViewById(R.id.sensorView);
         reportView = (TextView) findViewById(R.id.reportView);
         messageView = (TextView) findViewById(R.id.messageView);
+        compassView = (ImageView) findViewById(R.id.compassView);
 
         // buttons
         buttonQuake = (Button) findViewById(R.id.buttonQuake);
@@ -94,7 +98,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         buttonScreenCapture.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 takeScreenShot();
             }
         });
@@ -104,8 +107,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // sensors
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        if (mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null) {
-            mMagneticSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        if (mSensorManager.getDefaultSensor(sensorType) != null) {
+            mMagneticSensor = mSensorManager.getDefaultSensor(sensorType);
             mSensorManager.registerListener(this, mMagneticSensor, updateSpeed);
         } else {
             // fai! we dont have an magnetic sensor!
@@ -158,14 +161,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         switch (sensitivityValue) {
-            case HighSensitivity:
-                menu.findItem(R.id.menuSenseHigh).setChecked(true);
+            case 5:
+                menu.findItem(R.id.menuSense5).setChecked(true);
                 break;
-            case NormalSensitivify:
-                menu.findItem(R.id.menuSenseNormal).setChecked(true);
+            case 10:
+                menu.findItem(R.id.menuSense10).setChecked(true);
                 break;
-            case LowSensitivity:
-                menu.findItem(R.id.menuSenseLow).setChecked(true);
+            case 25:
+                menu.findItem(R.id.menuSense25).setChecked(true);
                 break;
         }
 
@@ -280,14 +283,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 return true;
 
             //Sensitivyty Group
-            case R.id.menuSenseLow: //Low Sensitivity
-                sensitivityValue = LowSensitivity;
+            case R.id.menuSense5: //Low Sensitivity
+                sensitivityValue = 5;
                 return true;
-            case R.id.menuSenseNormal: //Middle Sensitivity
-                sensitivityValue = NormalSensitivify;
+            case R.id.menuSense10: //Middle Sensitivity
+                sensitivityValue = 10;
                 return true;
-            case R.id.menuSenseHigh: //High Sensitivity
-                sensitivityValue = HighSensitivity;
+            case R.id.menuSense25: //High Sensitivity
+                sensitivityValue = 25;
                 return true;
 
             // Display Group
@@ -351,11 +354,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 break;
 
             //Tools
-            case R.id.screenShot: //take screen shot
+            case R.id.menuScreenShot: //take screen shot
                 takeScreenShot();
                 break;
-            case R.id.deleteAllFiles:
+            case R.id.menuDeleteAllFiles:
                 deleteAllFiles();
+                break;
+            case R.id.menuHelp:
+                showHelp();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -379,8 +385,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sensorView.setText(String.format(" X = %10.6f\n Y = %10.6f\n Z = %10.6f\n V = %10.6f",
                 event.values[0], event.values[1], event.values[2], v));
 
-        reportView.setText(String.format(" max = %10.6f\n min = %10.6f\n dev = %10.6f\n tick = %d",
-                sensorScope.maxSenseValue, sensorScope.minSenseValue, sensorScope.diffSenseValue, senseTick));
+        reportView.setText(String.format(" time tick = %d\n record # = %d\n quake = %10.6f\n sense = %d",
+                senseTick,
+                sensorScope.dataManager.writeRecordCount,
+                sensorScope.diffSenseValue,
+                sensitivityValue));
+        // create a rotation animation (reverse turn degree degrees)
+        float degree = (float)(Math.atan2((double)event.values[0],(double)event.values[1])/Math.PI*180);
+        RotateAnimation ra = new RotateAnimation(
+                currentDegree,
+                -degree,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF,
+                0.5f);
+        ra.setDuration(210); // how long the animation will take place
+        ra.setFillAfter(true); // set the animation after the end of the reservation status
+        compassView.startAnimation(ra);	// Start the animation
+        currentDegree = -degree;
 
         if (sensorScope.newQuakeValue > sensitivityValue ) {
         //if ((SensorScope.maxSenseValue-SensorScope.minSenseValue) > sensitivityValue ) {
@@ -424,9 +445,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     
     private void showMessage(String message) {
         messageView.setText(message+"\n"+
-                sensorScope.dataManager.recordFormatter.format(new Date(System.currentTimeMillis())));
+                sensorScope.dataManager.msgFormatter.format(new Date(System.currentTimeMillis())));
     }
 
+    private void showHelp()
+    {
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Help")
+                .setMessage("The captured data is stored in\n/Documents/Quake/")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //nothing
+                    }
+                })
+                .show();
+    }
     //
     // writeLogFile()
     //
@@ -437,29 +471,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void deleteAllFiles()
     {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        builder.setTitle("Warning");
-        builder.setMessage("Do you want delete all files ?");
-        builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                // Do do my action here
-                showMessage(sensorScope.dataManager.deleteAllFiles());
-                dialog.dismiss();
-            }
-
-        });
-
-        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // I do not need any action here you might
-                dialog.dismiss();
-            }
-        });
-
-        AlertDialog alert = builder.create();
-        alert.show();
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Warning")
+                .setMessage("Do you want to delete all files ?")
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        showMessage(sensorScope.dataManager.deleteAllFiles());
+                    }
+                })
+                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //nothing
+                    }
+                })
+                .show();
     }
 
     // ------------------------------------------------------------------------
