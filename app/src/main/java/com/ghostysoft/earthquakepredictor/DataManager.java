@@ -26,6 +26,7 @@ public class DataManager {
     private final static String TAG = MainActivity.class.getSimpleName();
     final int maxDataLength=1000; //keep limited memory
     final SimpleDateFormat fileFormatter = new SimpleDateFormat("yyyyMMdd_HHmmss");
+    final SimpleDateFormat logFormatter = new SimpleDateFormat("yyyyMMdd");
     final SimpleDateFormat recordFormatter = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
     final SimpleDateFormat msgFormatter = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
@@ -80,7 +81,7 @@ public class DataManager {
 
     private void buildLogFile()
     {
-        String logFileName =  strRootPath + fileFormatter.format(new Date(System.currentTimeMillis()))+".log";
+        String logFileName =  strRootPath + logFormatter.format(new Date(System.currentTimeMillis()))+".log";
         logFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), logFileName);
     }
 
