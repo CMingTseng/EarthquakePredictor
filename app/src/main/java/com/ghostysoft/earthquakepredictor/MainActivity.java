@@ -391,14 +391,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 sensorScope.diffSenseValue,
                 sensitivityValue));
         // create a rotation animation (reverse turn degree degrees)
-        float degree = (float)(Math.atan2((double)event.values[0],(double)event.values[1])/Math.PI*180);
+        float degree = (float)(Math.atan2((double)event.values[1],(double)event.values[0])/Math.PI*180);
         RotateAnimation ra = new RotateAnimation(
                 currentDegree,
                 -degree,
                 Animation.RELATIVE_TO_SELF, 0.5f,
                 Animation.RELATIVE_TO_SELF,
                 0.5f);
-        ra.setDuration(210); // how long the animation will take place
+        ra.setDuration(100); // how long the animation will take place
         ra.setFillAfter(true); // set the animation after the end of the reservation status
         compassView.startAnimation(ra);	// Start the animation
         currentDegree = -degree;

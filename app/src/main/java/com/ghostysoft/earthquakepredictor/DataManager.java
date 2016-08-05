@@ -36,8 +36,10 @@ public class DataManager {
     XYMultipleSeriesDataset dataset;
 
     // data file
+    final String strDocPath = Environment.getExternalStorageDirectory() + "/Documents"; //below API18(Android4.3)
+    //final String strDocPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS); // above API18 (Android4.4)
     final String strRootPath="Quake/";
-    final File dataDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), strRootPath);
+    final File dataDirectory = new File(strDocPath, strRootPath);
     File dataFile, logFile;
     int writeRecordCount;
 
@@ -75,14 +77,14 @@ public class DataManager {
     private void buildNewDataFile()
     {
         String dataFileName =  strRootPath + fileFormatter.format(new Date(System.currentTimeMillis()))+".txt";
-        dataFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), dataFileName);
+        dataFile = new File(strDocPath, dataFileName);
         writeRecordCount=0;
     }
 
     private void buildLogFile()
     {
         String logFileName =  strRootPath + logFormatter.format(new Date(System.currentTimeMillis()))+".log";
-        logFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), logFileName);
+        logFile = new File(strDocPath, logFileName);
     }
 
     public  void addData( int tick, double x, double y, double z, double v) {
@@ -157,8 +159,7 @@ public class DataManager {
     String screenCapture(View rootView)
     {
         Date curDate = new Date(System.currentTimeMillis());
-        String fileName = fileFormatter.format(curDate);
-        String strNow = recordFormatter.format(curDate);
+        String imageFileName =  strRootPath + fileFormatter.format(new Date(System.currentTimeMillis()))+".jpg";
 
         try {
             rootView.setDrawingCacheEnabled(true);
@@ -166,8 +167,9 @@ public class DataManager {
             rootView.setDrawingCacheEnabled(false);
 
             // save to image file
-            File imageFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Screenshots/Quake" + fileName +".jpg");
+            File imageFile = new File(strDocPath, imageFileName);
             Log.d(TAG,"file: "+imageFile.getAbsolutePath());
+            if (!imageFile.exists()) imageFile.createNewFile(); //comtable with SDK<18
             OutputStream outputStream = new FileOutputStream(imageFile); //FileNotFoundException
             capturedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
             outputStream.flush();
