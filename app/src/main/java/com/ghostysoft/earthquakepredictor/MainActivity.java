@@ -382,10 +382,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         event.values[2] * event.values[2]);
         sensorScope.addData(senseTick, event.values[0], event.values[1], event.values[2], v);
 
-        sensorView.setText(String.format(" X = %10.6f\n Y = %10.6f\n Z = %10.6f\n V = %10.6f",
+        sensorView.setText(String.format(" X = %8.4f\n Y = %8.4f\n Z = %8.4f\n V = %8.4f",
                 event.values[0], event.values[1], event.values[2], v));
 
-        reportView.setText(String.format(" time tick = %d\n record # = %d\n quake = %10.6f\n sense = %d",
+        reportView.setText(String.format(" time tick = %d\n record # = %d\n quake = %8.4f\n sense = %d",
                 senseTick,
                 sensorScope.dataManager.writeRecordCount,
                 sensorScope.diffSenseValue,
